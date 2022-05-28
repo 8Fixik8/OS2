@@ -20,8 +20,7 @@ namespace ConsoleApplication1
 
         private async Task Run()
         {
-            //ожидает, когда освободится место для записи элемента.
-            while (await Writer.WaitToWriteAsync())
+                while (await Writer.WaitToWriteAsync())
             {
                 char[] word = new char[5];
                 for (int i = 97; i < 123; i++)
@@ -71,16 +70,14 @@ namespace ConsoleApplication1
 
         private async Task Run()
         {
-            // ожидает, когда освободится место для чтения элемента.
             while (await Reader.WaitToReadAsync())
             {
                 if (!Program.foundFlag)
                 {
                     var item = await Reader.ReadAsync();
-                    //Console.WriteLine($"получены данные {item}");
                     if (FoundHash(item.ToString()) == PasswordHash)
                     {
-                        Console.WriteLine($"\tПароль подобран - {item}");
+                        Console.WriteLine($"\tРџР°СЂРѕР»СЊ РїРѕРґРѕР±СЂР°РЅ  - {item}");
                         Program.foundFlag = true;
                     }
                 }
@@ -91,7 +88,6 @@ namespace ConsoleApplication1
         static public string FoundHash(string str)
         {
             SHA256 sha256Hash = SHA256.Create();
-            //Из строки в байтовый массив
             byte[] sourceBytes = Encoding.ASCII.GetBytes(str);
             byte[] hashBytes = sha256Hash.ComputeHash(sourceBytes);
             string hash = BitConverter.ToString(hashBytes).Replace("-", String.Empty);
@@ -110,15 +106,15 @@ namespace ConsoleApplication1
             bool flag = true;
             while (flag)
             {
-                Console.WriteLine("1. Подбор пароля");
-                Console.WriteLine("2. Очистить консоль");
-                Console.WriteLine("3. Закончить работу");
-                Console.Write("Выберите действие: ");
+                Console.WriteLine("1. РџРѕРґР±РѕСЂ РїР°СЂРѕР»СЏ");
+                Console.WriteLine("2. РћС‡РёСЃС‚РёС‚СЊ РєРѕРЅСЃРѕР»СЊ");
+                Console.WriteLine("3. Р—Р°РєРѕРЅС‡РёС‚СЊ СЂР°Р±РѕС‚Сѓ");
+                Console.Write("Р’С‹Р±РµСЂРёС‚Рµ РґРµР№СЃС‚РІРёРµ: ");
                 int choice = int.Parse(Console.ReadLine());
                 switch (choice)
                 {
                     case 1:
-                        Console.WriteLine("\tВыберите хеш значение SHA-256 для подбора пароля: ");
+                        Console.WriteLine("\ttР’С‹Р±РµСЂРёС‚Рµ С…РµС€ Р·РЅР°С‡РµРЅРёРµ SHA-256 РґР»СЏ РїРѕРґР±РѕСЂР° РїР°СЂРѕР»СЏ: ");
                         Console.WriteLine("\t1. 1115dd800feaacefdf481f1f9070374a2a81e27880f187396db67958b207cbad");
                         Console.WriteLine("\t2. 3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b");
                         Console.WriteLine("\t3. 74e1bb62f8dabb8125a58852b63bdf6eaef667cb56ac7f7cdba6d7305c50a22f");
@@ -126,29 +122,25 @@ namespace ConsoleApplication1
                         int sign = int.Parse(Console.ReadLine());
                         string[] readText = File.ReadAllLines(PATH);
                         string passwordHash = readText[sign - 1].ToUpper();
-                        Console.Write("\tКоличество потоков: ");
+                        Console.Write("\tРљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕС‚РѕРєРѕРІ: ");
                         int countStream = int.Parse(Console.ReadLine());
-                        Console.WriteLine("\tОжидайте...");
+                        Console.WriteLine("\tРћР¶РёРґР°Р№С‚Рµ...");
 
-                        // общий канал данных
                         Channel<string> channel = Channel.CreateBounded<string>(countStream);
                         Stopwatch time = new Stopwatch();
                         time.Reset();
                         time.Start();
-                        //создается производитель
                         var prod = Task.Run(() => { new Producer(channel.Writer); });
                         Task[] streams = new Task[countStream + 1];
                         streams[0] = prod;
-                        //создаются потребители 
                         for (int i = 1; i < countStream + 1; i++)
                         {
                             streams[i] = Task.Run(() => { new Consumer(channel.Reader, passwordHash); });
                         }
-                        //Ожидает завершения выполнения всех указанных объектов Task 
                         Task.WaitAny(streams);
                         time.Stop();
-                        Console.WriteLine($"\tЗатраченное время: {time.Elapsed}");
-                        Console.WriteLine("\tНажмите любую клавишу, чтобы выйти в главное меню.");
+                        Console.WriteLine($"\tР—Р°С‚СЂР°С‡РµРЅРЅРѕРµ РІСЂРµРјСЏ: {time.Elapsed}");
+                        Console.WriteLine("\tРќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РІС‹Р№С‚Рё РІ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ.");
                         Console.WriteLine();
                         Console.ReadKey();
                         foundFlag = false;
@@ -160,7 +152,7 @@ namespace ConsoleApplication1
                         flag = false;
                         break;
                     default:
-                        Console.WriteLine("\tВыбранного пункта не существует.");
+                        Console.WriteLine("\tР’С‹Р±СЂР°РЅРЅРѕРіРѕ РїСѓРЅРєС‚Р° РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.");
                         break;
                 }
             }
